@@ -2,68 +2,70 @@
 
 namespace App\Controller;
 
-use App\Entity\FoodRecord;
+use App\Entity\User;
 use App\Form\FoodType;
 use App\Services\Diary;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Exception\ORMException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Entity\FoodRecord;
+use Datetime;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Security\Csrf\CsrfTokenManager;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\FoodRecordRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\Translation\TranslatableInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * @Route ("/diary")
- */
+#[Route(path: '/diary')]
 class DiaryController extends AbstractController
 {
-    /**
-     * @Route ("/homepage", name="homepage")
-     * @return Response
-     */
+    #[Route(path: '/homepage', name: 'homepage')]
+    #[IsGranted('ROLE_USER')]
     public function indexAction(): Response
     {
-        return $this->render('diary/index.html.twig');
+        return $this->render(
+            'diary/index.html.twig',
+            [
+                'github_client_id' => $this->getParameter('github.id'),
+            ]
+        );
     }
 
-    /**
-     * @Route("/list", name="diary")
-     */
-    public function listAction(FoodRecordRepository $foodRecordRepository): Response
+    #[Route(path: '/list', name: 'diary')]
+    #[IsGranted('ROLE_USER')]
+    public function listAction(EntityManagerInterface $entityManager): Response
     {
         return $this->render(
             'diary/list.html.twig',
             [
-                'records' => $foodRecordRepository->findBy(
+                'records' => $entityManager->getRepository(FoodRecord::class)->findBy(
                     [
                         'userId' => $this->getUser()->getId(),
-                        'recordedAt' => new \Datetime()
+                        'recordedAt' => new Datetime(),
                     ]
                 )
             ]
         );
     }
 
-    /**
-     * @Route("/add-new-record", name="add-new-record")
-     * @throws ORMException
-     */
-    public function addRecordAction(Request $request, EntityManager $entityManager): RedirectResponse|Response
+    #[Route(path: '/add-new-record', name: 'add-new-record')]
+    #[IsGranted('ROLE_USER')]
+    public function addRecordAction(Request $request, EntityManagerInterface $entityManager, TranslatorInterface $translator): RedirectResponse|Response
     {
         $foodRecord = new FoodRecord($this->getUser());
         $form = $this->createForm(FoodType::class, $foodRecord);
 
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($foodRecord);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Une nouvelle entrée dans votre journal a bien été ajoutée.');
+            $this->addFlash('success', $translator->trans('A new entry in your diary has been successfully added').'.');
 
             return $this->redirectToRoute('add-new-record');
         }
@@ -71,13 +73,12 @@ class DiaryController extends AbstractController
         return $this->render('diary/addRecord.html.twig', ['form' => $form->createView()]);
     }
 
-    /**
-     * @Route("/record", name="delete-record")
-     */
-    public function deleteRecordAction(Request $request, FoodRecordRepository $foodRecordRepository, CsrfTokenManager $tokenManager, EntityManager $entityManager): RedirectResponse
+    #[Route(path: '/delete-record', name: 'delete-record')]
+    #[IsGranted('ROLE_USER')]
+    public function deleteRecordAction(Request $request, CsrfTokenManagerInterface $tokenManager, EntityManagerInterface $entityManager, TranslatorInterface $translator): RedirectResponse
     {
-        if (!$record = $foodRecordRepository->findOneById($request->request->get('record_id'))) {
-            $this->addFlash('danger', "L'entrée du journal n'existe pas.");
+        if (!$record = $entityManager->getRepository(FoodRecord::class)->findOneById($request->request->get('record_id'))) {
+            $this->addFlash('danger', $translator->trans('Log entry does not exist').'.');
 
             return $this->redirectToRoute('diary');
         }
@@ -88,19 +89,22 @@ class DiaryController extends AbstractController
             $entityManager->remove($record);
             $entityManager->flush();
 
-            $this->addFlash('success', "L'entrée a bien été supprimée du journal.");
+            $this->addFlash('success', $translator->trans('The entry has been successfully deleted from the log').'.');
         } else {
-            $this->addFlash('error', 'An error occurred.');
+            $this->addFlash('error', $translator->trans('An error has occurred').'.');
         }
 
         return $this->redirectToRoute('diary');
     }
 
+    #[Route(path: '/calories-status', name: 'calories-status')]
     public function caloriesStatusAction(Diary $diary): Response
     {
         return $this->render(
-            'diary/caloriesStatus.html.twig',
-            ['remainingCalories' => $diary->getDailyRemainingCalories($this->getUser(), new \Datetime())]
+            'diary/caloriesStatus.html.twig',[
+                'remainingCalories' => $diary->getDailyRemainingCalories($this->getUser(), new Datetime()),
+                'maxCalories' => User::MAX_ADVICED_DAILY_CALORIES
+            ]
         );
     }
 }

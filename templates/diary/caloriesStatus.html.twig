@@ -1,0 +1,23 @@
+{% if app.user %}
+    {% if remainingCalories < 0 %}
+        <div class="alert alert-danger" role="alert">
+            {{ 'You have exceeded the recommended daily calorie quota' | trans }} -
+            {{ 'You are at' | trans }} <strong>{{ - remainingCalories + maxCalories }} {{ 'calories' | trans }}</strong>.
+        </div>
+
+    {% elseif remainingCalories == 0 %}
+
+        <div class="alert alert-warning" role="alert">
+            {{ 'You have consumed the recommended daily calorie quota of' | trans }} {{ maxCalories }} {{ 'calories' | trans }}.
+        </div>
+
+    {% elseif remainingCalories is null %}
+
+    {% else %}
+
+        <div class="alert alert-success" role="alert">
+            {{ 'Your quota has not yet been reached' | trans }}. {{ 'You still have' | trans }} {{ remainingCalories }}
+            {{ 'calories' | trans }} {{ 'to consume today' | trans}}.
+        </div>
+    {% endif %}
+{% endif %}

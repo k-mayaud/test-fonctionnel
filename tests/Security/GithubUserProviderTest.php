@@ -5,6 +5,7 @@ namespace App\Tests\Security;
 use App\Entity\User;
 use GuzzleHttp\Client;
 use JMS\Serializer\Serializer;
+use JMS\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use App\Security\GithubUserProvider;
 use Psr\Http\Message\StreamInterface;
@@ -15,7 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 class GithubUserProviderTest extends TestCase
 {
     private MockObject | Client | null $client;
-    private MockObject | Serializer | null $serializer;
+    private MockObject | SerializerInterface | null $serializer;
     private MockObject | StreamInterface | null $streamedResponse;
     private MockObject | ResponseInterface | null $response;
 
@@ -25,7 +26,7 @@ class GithubUserProviderTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
         $this->serializer = $this
-            ->getMockBuilder('JMS\Serializer\Serializer')
+            ->getMockBuilder('JMS\Serializer\SerializerInterface')
             ->disableOriginalConstructor()
             ->getMock();
         $this->streamedResponse = $this

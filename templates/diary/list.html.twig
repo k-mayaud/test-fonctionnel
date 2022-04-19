@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    {% for record in records %}
+        <div class="row">
+            <div class="col-md-12">
+                <h3>{{ 'Added at' | trans }} {{ record.recordedAt|date('d/m/Y') }}</h3>
+                <h4>{{ 'Eaten' | trans }} : {{ record.entitled }} - {{ record.calories }} Cal</h4>
+
+                <form action="{{ path('delete-record') }}" method="POST">
+                    <input type="hidden" id="form_id" name="record_id" class="form-control" value="{{ record.id }}" />
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('delete_record') }}" />
+
+                    <button type="submit" class="btn btn-danger pull-right"><i class="fa fa-window-close"></i>{{ 'Delete' | trans }}</button>
+                </form>
+            </div>
+        </div>
+
+        <hr>
+    {% else %}
+        <div class="row">
+            {{ 'No log entries yet' | trans }}.
+        </div>
+    {% endfor %}
+    <div class="row">
+        <a href="{{ path('add-new-record') }}"
+           type="button"
+           class="btn btn-success btn-lg pull-right">
+            <i class="fa fa-plus-square"></i>
+            {{ 'Add a new entry' | trans }}
+        </a>
+    </div>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use JMS\Serializer\Exception\LogicException;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class Product
 {
@@ -15,10 +15,10 @@ class Product
         $this->price = $price;
     }
 
-    public function computeTVA(): float | LogicException
+    public function computeTVA(): float | Exception
     {
         if ($this->price < 0) {
-            throw new LogicException('The TVA cannot be negative.');
+            throw new Exception('The TVA cannot be negative.');
         }
 
         if (self::FOOD_PRODUCT == $this->type) {

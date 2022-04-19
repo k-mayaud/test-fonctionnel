@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
-use App\Entity\FoodRecord;
-use App\Entity\User;
-use Doctrine\ORM\EntityManager;
 use DateTime;
+use App\Entity\User;
+use App\Entity\FoodRecord;
+use Doctrine\ORM\EntityManagerInterface;
 
 class Diary
 {
-    private EntityManager $em;
+    private EntityManagerInterface $em;
 
-    public function __construct(EntityManager $em)
+    public function __construct(EntityManagerInterface $em)
     {
         $this->em = $em;
     }

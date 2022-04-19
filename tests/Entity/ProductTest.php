@@ -28,7 +28,7 @@ class ProductTest extends TestCase
     {
         $product = new Product('Un produit', Product::FOOD_PRODUCT, -20);
 
-        $this->expectException('LogicException');
+        $this->expectException('Exception');
 
         $product->computeTVA();
     }

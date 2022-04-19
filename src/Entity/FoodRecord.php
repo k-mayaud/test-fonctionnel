@@ -8,7 +8,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass=FoodRecordRepository::class)
+ * @ORM\Entity()
  * @ORM\Table
  */
 class FoodRecord
